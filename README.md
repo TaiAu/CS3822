@@ -1,5 +1,4 @@
-# CS3822
-Full Unit Project Repository
+# CS3822 Full Unit Project Repository
 
 Data Structures and Priority Queue program
 
