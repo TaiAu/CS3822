@@ -3,7 +3,7 @@
  * involves creating a chess board and placing eight queens on it such that no
  * queen threatens another queen.
  * 
- * @author Tai (Shiu Hung Au)
+ * @author Tai
  */
 public class EightQueensRecursive {
 
@@ -115,7 +115,18 @@ public class EightQueensRecursive {
     return 0;
   }
 
-  // places queen (1) or empty square (0) in square with coordinate (x, y)
+  /**
+   * Places queen (1) or empty square (0) in square with coordinate (x, y)
+   * 
+   * @param x
+   *          the x coordinate
+   * @param y
+   *          the y coordinate
+   * @param type
+   *          the integer representing the type of the object i.e. empty square
+   *          (0) or queen (1)
+   * @return -3 if wrong type or 0 if queen placed or removed.
+   */
   public int placeQueen(int x, int y, int type) {
     if (type == 0) {
       board[x][y] = 1;
@@ -131,7 +142,16 @@ public class EightQueensRecursive {
     return -3;
   }
 
-  // gets x and y coordinates and exits if out of bounds
+  /**
+   * Gets x and y coordinates and exits if array is out of bounds.
+   * 
+   * @param x
+   *          the x coordinate
+   * @param y
+   *          the y coordinate
+   * @return -1 if out of bounds or integer representing empty square (0) or
+   *         queen (1)
+   */
   public static int get(int x, int y) {
     if (x < 0 || y < 0 || x > 7 || y > 7) {
       return -1;
@@ -139,7 +159,10 @@ public class EightQueensRecursive {
     return board[x][y];
   }
 
-  // goes through all squares on the 8x8 board
+  /**
+   * Prints the 8x8 board with the queen positions after iterating through all
+   * the squares.
+   */
   public void printBoard() {
     System.out.println(" _ _ _ _ _ _ _ _ ");
     for (int j = 0; j < 8; j++) {
