@@ -1,3 +1,5 @@
+package attempt1;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -5,6 +7,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.Scanner;
+
+import attempt1.DoublyLinkedList.Node;
 
 /**
  * The DataStructureTest class contains the main method to the data structure
