@@ -1,3 +1,6 @@
+package attempt1;
+
+
 import java.util.HashSet;
 
 /**
