@@ -1,3 +1,5 @@
+package attempt1;
+
 /**
  * The DoublyLinkedList class contains methods that demonstrate functionalities
  * of the DoublyLinkedList data structure.
