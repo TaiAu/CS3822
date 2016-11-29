@@ -6,8 +6,6 @@ import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.Scanner;
 
-import attempt1.DoublyLinkedList.Node;
-
 /**
  * The DataStructureTest class contains the main method to the data structure
  * proof of concept program and is an interactive demonstration of data
