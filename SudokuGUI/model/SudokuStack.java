@@ -3,52 +3,51 @@ package model;
 import java.util.Stack;
 
 /**
- * The SudokuStack contains puzzle stack methods.
+ * The PuzzleStack class contains puzzle stack methods.
  * 
  * @author Tai
- *
  */
-public class SudokuStack {
-	private Stack<SudokuData> stack;
+public class PuzzleStack {
+	private Stack<PuzzlePosition> stack;
 
 	/**
-	 * Constructor for the SudokuStack.
+	 * The PuzzleStack constructor.
 	 */
-	public SudokuStack() {
-		this.stack = new Stack<SudokuData>();
+	public PuzzleStack() {
+		this.stack = new Stack<PuzzlePosition>();
 	}
 
 	/**
-	 * Pushes the stack.
+	 * The pushStack method pushes the stack.
 	 * 
 	 * @param count
 	 *            the count of the stack
 	 */
-	public void pushStack(SudokuData count) {
-		this.stack.push(count);
+	public void pushStack(PuzzlePosition position) {
+		this.stack.push(position);
 	}
 
 	/**
-	 * Peeks the stack.
+	 * The peekStack method peeks the stack.
 	 * 
 	 * @return Sudoku data if not empty and null otherwise
 	 */
-	public SudokuData peekStack() {
+	public PuzzlePosition peekStack() {
 		if (stack.size() > 0) {
-			return (SudokuData) stack.peek();
+			return (PuzzlePosition) stack.peek();
 		} else {
 			return null;
 		}
 	}
 
 	/**
-	 * Pops the stack.
+	 * The popStack method pops the stack.
 	 * 
 	 * @return Sudoku data if not empty and null otherwise
 	 */
-	public SudokuData popStack() {
+	public PuzzlePosition popStack() {
 		if (stack.size() > 0) {
-			return (SudokuData) stack.pop();
+			return (PuzzlePosition) stack.pop();
 		} else {
 			return null;
 		}
