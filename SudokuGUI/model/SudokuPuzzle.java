@@ -6,14 +6,18 @@ import java.awt.Rectangle;
 
 import view.SudokuCell;
 
+/**
+ * The SudokuPuzzle class defines the structure of the Sudoku puzzle.
+ * 
+ * @author Tai
+ */
 public class SudokuPuzzle {
 
 	private boolean valuesSet;
+	// private boolean valuesHint;
 
 	private int sudokuGUIDimension;
 	private int sudokuDimension;
-
-	private SudokuCell[][] cells;
 
 	/**
 	 * The SudokuPuzzle constructor.
@@ -34,6 +38,8 @@ public class SudokuPuzzle {
 			{ 3, 6, 9, 3, 6, 9, 3, 6, 9 }, { 1, 4, 7, 1, 4, 7, 1, 4, 7 }, { 2, 5, 8, 2, 5, 8, 2, 5, 8 },
 			{ 3, 6, 9, 3, 6, 9, 3, 6, 9 } };
 
+	private SudokuCell[][] cells;
+
 	/**
 	 * Initialises the sudoku cells depending on the grid dimensions.
 	 * 
@@ -44,7 +50,7 @@ public class SudokuPuzzle {
 		for (int x = 0; x < sudokuDimension; x++) {
 			for (int y = 0; y < sudokuDimension; y++) {
 				cells[x][y] = new SudokuCell();
-				cells[x][y].setCellCoordinates(new Point(x, y));
+				cells[x][y].setCellLocation(new Point(x, y));
 			}
 		}
 	}
@@ -76,7 +82,7 @@ public class SudokuPuzzle {
 	 * @param valuesSet
 	 *            the set of values
 	 */
-	public void lockInValues(boolean valuesSet) {
+	public void setSetValues(boolean valuesSet) {
 		this.valuesSet = valuesSet;
 	}
 
@@ -96,12 +102,12 @@ public class SudokuPuzzle {
 	}
 
 	/**
-	 * Sets the sudoku cells.
+	 * Sets all the sudoku cells.
 	 * 
 	 * @param sudokuCells
 	 *            the sudoku cells
 	 */
-	public void setCells(SudokuCell[][] sudokuCells) {
+	public void setCells(SudokuCell[][] cells) {
 		for (int i = 0; i < sudokuDimension; i++) {
 			for (int j = 0; j < sudokuDimension; j++) {
 				this.cells[i][j] = cells[i][j].copy();
@@ -116,7 +122,7 @@ public class SudokuPuzzle {
 	 *            a sudoku cell
 	 */
 	public void setCell(SudokuCell cell) {
-		Point point = cell.getCellCoordinates();
+		Point point = cell.getCellLocation();
 		this.cells[point.x][point.y] = cell;
 	}
 
@@ -130,7 +136,7 @@ public class SudokuPuzzle {
 	}
 
 	/**
-	 * Gets the Sudoku dimension
+	 * Gets the Sudoku dimension.
 	 * 
 	 * @return the sudoku dimension
 	 */
@@ -139,12 +145,13 @@ public class SudokuPuzzle {
 	}
 
 	/**
-	 * Gets a set of Sudoku cell coordinates.
+	 * Gets a Sudoku cell given a set of coordinates.
 	 * 
 	 * @param point
-	 * @return
+	 *            the cell coordinates
+	 * @return the Sudoku cell or null
 	 */
-	public SudokuCell getSudokuCellCoordinates(Point point) {
+	public SudokuCell getSudokuCellLocation(Point point) {
 		for (int i = 0; i < sudokuDimension; i++) {
 			for (int j = 0; j < sudokuDimension; j++) {
 				if (cells[i][j].contains(point)) {
@@ -158,23 +165,23 @@ public class SudokuPuzzle {
 	/**
 	 * Gets the smallest list of possible values.
 	 * 
-	 * @return the cells containing the smallest list of possible guessable
+	 * @return the cell containing the smallest list of possible guessable
 	 *         number values.
 	 */
-	public SudokuCell getSudokuCellWithLeastNumbers() {
-		int minimumCount = Integer.MAX_VALUE;
+	public SudokuCell getSmallestPossibleValuesList() {
+		int minCount = Integer.MAX_VALUE;
 		Point point = new Point(-1, -1);
-		for (int x = 0; x < sudokuDimension; x++) {
-			for (int y = 0; y < sudokuDimension; y++) {
-				if (cells[x][y].getValue() <= 0) {
-					int count = cells[x][y].getPossibleValuesCount();
-					if ((count > 1) && (count < minimumCount)) {
-						minimumCount = count;
-						point.x = x;
-						point.y = y;
+		for (int i = 0; i < sudokuDimension; i++) {
+			for (int j = 0; j < sudokuDimension; j++) {
+				if (cells[i][j].getValue() <= 0) {
+					int count = cells[i][j].getPossibleValuesCount();
+					if ((count > 1) && (count < minCount)) {
+						minCount = count;
+						point.x = i;
+						point.y = j;
 					}
 					if (count == 2) {
-						return cells[x][y];
+						return cells[i][j];
 					}
 				}
 			}
@@ -193,8 +200,8 @@ public class SudokuPuzzle {
 	 *            the cell coordinates
 	 * @return the cells at coordinates
 	 */
-	public SudokuCell getSudokuCell(Point cellCoordinates) {
-		return cells[cellCoordinates.x][cellCoordinates.y];
+	public SudokuCell getSudokuCell(Point cellPosition) {
+		return cells[cellPosition.x][cellPosition.y];
 	}
 
 	/**
@@ -203,10 +210,10 @@ public class SudokuPuzzle {
 	 * @param sudokuCell
 	 *            the sudoku cell
 	 * @param point
-	 *            the coordinates
+	 *            the sudoku cell coordinates
 	 */
-	public void setSudokuCell(SudokuCell sudokuCell, Point coordinates) {
-		cells[coordinates.x][coordinates.y] = sudokuCell;
+	public void setSudokuCell(SudokuCell sudokuCell, Point point) {
+		cells[point.x][point.y] = sudokuCell;
 	}
 
 	/**
@@ -215,46 +222,30 @@ public class SudokuPuzzle {
 	 * @param sudokuCell
 	 *            the sudoku cell
 	 */
-	public void removePossibleValue(SudokuCell sudokuCell) {
-		int value = sudokuCell.getValue();
-		Point coordinates = sudokuCell.getCellCoordinates();
+	public void removePossibleValue(SudokuCell cell) {
+		int value = cell.getValue();
+		Point point = cell.getCellLocation();
 
 		for (int i = 0; i < sudokuDimension; i++) {
-			cells[i][coordinates.y].removePossibleValue(value);
+			cells[i][point.y].removePossibleValue(value);
 		}
 		for (int j = 0; j < sudokuDimension; j++) {
-			cells[coordinates.x][j].removePossibleValue(value);
+			cells[point.x][j].removePossibleValue(value);
 		}
 
-		int x = coordinates.x / 3;
-		int y = coordinates.y / 3;
-		for (int i = x * 3; i < (x + 1) * 3; i++) {
-			for (int j = y * 3; j < (y + 1) * 3; j++) {
+		int ii = point.x / 3;
+		int jj = point.y / 3;
+		for (int i = ii * 3; i < (ii + 1) * 3; i++) {
+			for (int j = jj * 3; j < (jj + 1) * 3; j++) {
 				cells[i][j].removePossibleValue(value);
 			}
 		}
 	}
 
 	/**
-	 * Checks whether a sudoku grid is inaccurate or not.
-	 * 
-	 * @return
-	 */
-	public boolean isInaccurate() {
-		for (int i = 0; i < sudokuDimension; i++) {
-			for (int j = 0; j < sudokuDimension; j++) {
-				if ((cells[i][j].getValue() <= 0) && (cells[i][j].getPossibleValuesCount() <= 0)) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * Checks whether a sudoku grid is complete or not.
 	 * 
-	 * @return true or false
+	 * @return true if complete and false otherwise
 	 */
 	public boolean isIncomplete() {
 		for (int i = 0; i < sudokuDimension; i++) {
@@ -268,16 +259,33 @@ public class SudokuPuzzle {
 	}
 
 	/**
-	 * Gets the cells with only one possible number.
+	 * Checks whether a sudoku grid is inaccurate or not.
 	 * 
-	 * @return the cell location
+	 * @return true if accurate and false otherwise
 	 */
-	public Point getSinglePossibleNumberCells() {
+	public boolean isInaccurate() {
+		for (int i = 0; i < sudokuDimension; i++) {
+			for (int j = 0; j < sudokuDimension; j++) {
+				if ((cells[i][j].getValue() <= 0) && (cells[i][j].getPossibleValuesCount() <= 0)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Gets the cell coordinates of a cell with only one possible number.
+	 * 
+	 * @return the cell location if there is only one possible value and null
+	 *         otherwise
+	 */
+	public Point getSinglePossibleValue() {
 		for (int i = 0; i < sudokuDimension; i++) {
 			for (int j = 0; j < sudokuDimension; j++) {
 				if (cells[i][j].getValue() <= 0) {
 					if (cells[i][j].getPossibleValuesCount() == 1) {
-						return cells[i][j].getCellCoordinates();
+						return cells[i][j].getCellLocation();
 					}
 				}
 			}
@@ -286,7 +294,7 @@ public class SudokuPuzzle {
 	}
 
 	/**
-	 * Draws the Sudoku grid graphics.
+	 * Draws the Sudoku grid's graphical components.
 	 * 
 	 * @param g
 	 *            the graphics object
