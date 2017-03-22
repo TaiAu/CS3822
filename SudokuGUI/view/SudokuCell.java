@@ -11,100 +11,230 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
+import model.SudokuPuzzle;
+
+/**
+ * The SudokuCell class contains the methods and data for manipulating the
+ * Sudoku cell.
+ * 
+ * @author Tai
+ *
+ */
 public class SudokuCell {
 
 	private boolean isInitial;
+	private boolean isHintButtonPressed = false;
 
-	private int maxNumber;
+	private int maxValue;
 	private int value;
 
-	private Point cellCoordinates;
+	private Point cellLocation;
 
 	private Rectangle bounds;
 
 	private List<Integer> possibleValues;
 
+	public SudokuPuzzle sudokuPuzzle;
+
+	/**
+	 * The SudokuCell constructor.
+	 */
 	public SudokuCell() {
-		this.maxNumber = 9;
-		this.possibleValues = new ArrayList<Integer>(maxNumber);
-		initialise(maxNumber);
+		this.maxValue = 9;
+		this.possibleValues = new ArrayList<Integer>(maxValue);
+		initialise(maxValue);
 	}
 
-	public int getValue() {
-		return value;
-	}
-
-	public void setValue(int value) {
-		this.value = value;
-	}
-	
-	public void initialise(int maxNumber) {
+	/**
+	 * Initialises the sudoku cell to value 0 and possible values 1 to 9.
+	 * 
+	 * @param maxValue
+	 *            the maximum number of variables (9 for 9x9 Sudoku puzzles)
+	 */
+	public void initialise(int maxValue) {
 		this.value = 0;
 		this.possibleValues.clear();
 		this.isInitial = false;
-		add(maxNumber);
+		add(maxValue);
 	}
 
-	private void add(int maxNumber) {
-		for (int i = 1; i <= maxNumber; i++) {
+	/**
+	 * Adds the maximum number of possible values.
+	 * 
+	 * @param maxValue
+	 *            the maximum number of variables (9 for 9x9 Sudoku puzzles)
+	 */
+	private void add(int maxValue) {
+		for (int i = 1; i <= maxValue; i++) {
 			this.possibleValues.add(i);
 		}
 	}
 
-	public void clearPossibleValues() {
-		this.possibleValues.clear();
+	/**
+	 * Gets the value.
+	 * 
+	 * @return the value of the Sudoku cell variable
+	 */
+	public int getValue() {
+		return value;
 	}
 
-	private void setPossibleValues(List<Integer> possibleValues) {
-		this.possibleValues = possibleValues;
+	/**
+	 * Sets the Sudoku cell's value
+	 * 
+	 * @param value
+	 *            the value of a Sudoku cell variable
+	 */
+	public void setValue(int value) {
+		this.value = value;
 	}
 
-	public int getPossibleValuesCount() {
-		return possibleValues.size();
-	}
-	
+	/**
+	 * Sets a Sudoku cell's isInitial value to be true or false.
+	 * 
+	 * @param isInitial
+	 *            true or false
+	 */
 	public void setIsInitial(boolean isInitial) {
 		this.isInitial = isInitial;
 	}
 
-	public Point getCellCoordinates() {
-		return cellCoordinates;
+	/**
+	 * Sets isHintButtonPressed to be true or false.
+	 * 
+	 * @param isHintButtonPressed
+	 *            true or false
+	 */
+	public void setIsHintButtonPressed(boolean isHintButtonPressed) {
+		this.isHintButtonPressed = isHintButtonPressed;
 	}
 
-	public void setCellCoordinates(Point cellCoordinates) {
-		this.cellCoordinates = cellCoordinates;
+	/**
+	 * Gets the boolean isHintButtonPressed.
+	 * 
+	 * @return true if the hint button is pressed and false otherwise
+	 */
+	public boolean getIsHintButtonPressed() {
+		return isHintButtonPressed;
 	}
 
-	public List<Integer> getPossibleValues() {
-		return possibleValues;
+	/**
+	 * Clears the possible values in a Sudoku cell.
+	 */
+	public void clearPossibleValues() {
+		this.possibleValues.clear();
 	}
 
-	public boolean isPossibleValue(int possibleValue) {
-		return possibleValues.contains((Integer) possibleValue);
+	/**
+	 * Gets the cell coordinates of a Sudoku cell.
+	 * 
+	 * @return the cell coordinates
+	 */
+	public Point getCellLocation() {
+		return cellLocation;
 	}
 
-	public void removePossibleValue(int possibleValue) {
-		this.possibleValues.remove((Integer) possibleValue);
+	/**
+	 * Sets the cell location of a Sudoku cell.
+	 * 
+	 * @param cellLocation
+	 *            the cell coordinates to be set
+	 */
+	public void setCellLocation(Point cellLocation) {
+		this.cellLocation = cellLocation;
 	}
-	
+
+	/**
+	 * Sets the Sudoku region bounds.
+	 * 
+	 * @param bounds
+	 *            the graphical object bounds
+	 */
 	public void setBounds(Rectangle bounds) {
 		this.bounds = bounds;
 	}
 
+	/**
+	 * Returns a boolean to whether a region contains a cell coordinate.
+	 * 
+	 * @param point
+	 *            the sudoku cell coordinates
+	 * @return true if region contains cell coordinates and false otherwise
+	 */
 	public boolean contains(Point point) {
 		return bounds.contains(point);
 	}
 
+	/**
+	 * Gets the list of possible values.
+	 * 
+	 * @return the list of possible values
+	 */
+	public List<Integer> getPossibleValues() {
+		return possibleValues;
+	}
+
+	/**
+	 * Sets the list of possible values.
+	 * 
+	 * @param possibleValues
+	 *            the list of possible values
+	 */
+	private void setPossibleValues(List<Integer> possibleValues) {
+		this.possibleValues = possibleValues;
+	}
+
+	/**
+	 * Gets the number of possible values.
+	 * 
+	 * @return the number of possible values
+	 */
+	public int getPossibleValuesCount() {
+		return possibleValues.size();
+	}
+
+	/**
+	 * Returns the boolean as to whether a value is possible for a sudoku cell.
+	 * 
+	 * @param possibleValue
+	 *            the value to be tested
+	 * @return true if the value to be tested is a possible value and false
+	 *         otherwise
+	 */
+	public boolean isPossibleValue(int possibleValue) {
+		return possibleValues.contains((Integer) possibleValue);
+	}
+
+	/**
+	 * Removes the possible value from a Sudoku cell.
+	 * 
+	 * @param possibleValue
+	 *            the ex-possible value to be removed from a Sudoku cell.
+	 */
+	public void removePossibleValue(int possibleValue) {
+		this.possibleValues.remove((Integer) possibleValue);
+	}
+
+	/**
+	 * Returns a copy of a Sudoku cell.
+	 * 
+	 * @return the sudoku cell copy
+	 */
 	public SudokuCell copy() {
 		SudokuCell sudokuCell = new SudokuCell();
-		sudokuCell.setCellCoordinates(this.getCellCoordinates());
-		sudokuCell.setPossibleValues(this.copyPossibleValues());
 		sudokuCell.setIsInitial(this.isInitial);
 		sudokuCell.setBounds(this.bounds);
+		sudokuCell.setCellLocation(this.getCellLocation());
+		sudokuCell.setPossibleValues(this.copyPossibleValues());
 		sudokuCell.setValue(this.getValue());
 		return sudokuCell;
 	}
 
+	/**
+	 * Copies a list of possible values
+	 * 
+	 * @return a list copy of possible values
+	 */
 	private List<Integer> copyPossibleValues() {
 		List<Integer> list = new ArrayList<Integer>();
 		for (Integer number : this.getPossibleValues()) {
@@ -113,6 +243,10 @@ public class SudokuCell {
 		return list;
 	}
 
+	/**
+	 * Returns a string representation of the Sudoku cell's coordinates, values
+	 * and possible values.
+	 */
 	@Override
 	public String toString() {
 		String s = bounds.toString();
@@ -121,9 +255,9 @@ public class SudokuCell {
 
 		StringBuilder builder = new StringBuilder();
 		builder.append("Cell located at ");
-		builder.append(cellCoordinates.x);
+		builder.append(cellLocation.x);
 		builder.append(",");
-		builder.append(cellCoordinates.y);
+		builder.append(cellLocation.y);
 		builder.append("; drawing coordinates ");
 		builder.append(s.substring(sPos, ePos));
 		builder.append("; value: ");
@@ -139,6 +273,20 @@ public class SudokuCell {
 		return builder.toString();
 	}
 
+	/**
+	 * Draws the Sudoku cell graphical object.
+	 * 
+	 * @param g
+	 *            the graphical object components
+	 * @param x
+	 *            the Sudoku cell's x coordinate
+	 * @param y
+	 *            the Sudoku cell's y coordinate
+	 * @param width
+	 *            the width of the Sudoku cell's graphical object
+	 * @param cellPosition
+	 *            the Sudoku cell's position
+	 */
 	public void draw(Graphics g, int x, int y, int width, int cellPosition) {
 		g.setColor(Color.WHITE);
 		g.fillRect(x, y, width, width);
@@ -177,6 +325,20 @@ public class SudokuCell {
 		}
 	}
 
+	/**
+	 * Draws the Sudoku cell's border
+	 * 
+	 * @param g
+	 *            the graphical object components
+	 * @param x
+	 *            the Sudoku cell's x coordinates
+	 * @param y
+	 *            the Sudoku cell's y coordinates
+	 * @param width
+	 *            the width of the Sudoku cell's graphical object
+	 * @param cellPosition
+	 *            the Sudoku cell's position
+	 */
 	private void drawBorder(Graphics g, int x, int y, int width, int cellPosition) {
 		switch (cellPosition) {
 		case 1:
@@ -210,46 +372,89 @@ public class SudokuCell {
 		}
 	}
 
-	private void drawBottomBorder(Graphics g, int x, int y, int width) {
-		g.drawLine(x, y + width - 1, x + width, y + width - 1);
-		g.drawLine(x, y + width - 2, x + width, y + width - 2);
-	}
-
-	private void drawLeftBorder(Graphics g, int x, int y, int width) {
-		g.drawLine(x + 1, y, x + 1, y + width);
-		g.drawLine(x + 2, y, x + 2, y + width);
-	}
-	
+	/**
+	 * Draws the top border of the Sudoku cell.
+	 * 
+	 * @param g
+	 *            the graphical object components
+	 * @param x
+	 *            the Sudoku cell's x coordinates
+	 * @param y
+	 *            the Sudoku cell's y coordinates
+	 * @param width
+	 *            the width of the Sudoku cell's graphical object
+	 */
 	private void drawTopBorder(Graphics g, int x, int y, int width) {
 		g.drawLine(x, y + 1, x + width, y + 1);
 		g.drawLine(x, y + 2, x + width, y + 2);
 	}
 
+	/**
+	 * Draws the right border of the Sudoku cell.
+	 * 
+	 * @param g
+	 *            the graphical object components
+	 * @param x
+	 *            the Sudoku cell's x coordinates
+	 * @param y
+	 *            the Sudoku cell's y coordinates
+	 * @param width
+	 *            the width of the Sudoku cell's graphical object
+	 */
 	private void drawRightBorder(Graphics g, int x, int y, int width) {
 		g.drawLine(x + width - 1, y, x + width - 1, y + width);
 		g.drawLine(x + width - 2, y, x + width - 2, y + width);
 	}
 
-	private BufferedImage createImage(List<String> list, double imageWidth, double imageHeight, double stringHeight) {
-		int margin = 6;
-		double extra = (double) margin + margin;
-		BufferedImage image = new BufferedImage((int) Math.round(imageWidth + extra),
-				(int) Math.round(imageHeight + extra), BufferedImage.TYPE_INT_RGB);
-		Graphics gg = image.getGraphics();
-		gg.setColor(Color.WHITE);
-		gg.fillRect(0, 0, image.getWidth(), image.getHeight());
-
-		gg.setColor(Color.LIGHT_GRAY);
-		int x = margin;
-		int y = margin / 2 + (int) Math.round(stringHeight);
-		for (Object s : list) {
-			gg.drawString((String) s, x, y);
-			y += (int) Math.round(stringHeight);
-		}
-		gg.dispose();
-		return image;
+	/**
+	 * Draws the bottom border of the Sudoku cell.
+	 * 
+	 * @param g
+	 *            the graphical object components
+	 * @param x
+	 *            the Sudoku cell's x coordinates
+	 * @param y
+	 *            the Sudoku cell's y coordinates
+	 * @param width
+	 *            the width of the Sudoku cell's graphical object
+	 */
+	private void drawBottomBorder(Graphics g, int x, int y, int width) {
+		g.drawLine(x, y + width - 1, x + width, y + width - 1);
+		g.drawLine(x, y + width - 2, x + width, y + width - 2);
 	}
-	
+
+	/**
+	 * Draws the left border of the Sudoku cell.
+	 * 
+	 * @param g
+	 *            the graphical object components
+	 * @param x
+	 *            the Sudoku cell's x coordinates
+	 * @param y
+	 *            the Sudoku cell's y coordinates
+	 * @param width
+	 *            the width of the Sudoku cell's graphical object
+	 */
+	private void drawLeftBorder(Graphics g, int x, int y, int width) {
+		g.drawLine(x + 1, y, x + 1, y + width);
+		g.drawLine(x + 2, y, x + 2, y + width);
+	}
+
+	/**
+	 * Creates an image of the Sudoku cell containing a value. A Sudoku cell
+	 * containing a value can initially set or set later by the user (not
+	 * initially set).
+	 * 
+	 * @param font
+	 *            the font of the text
+	 * @param frc
+	 *            the pixel information required to display the text
+	 * @param width
+	 *            the width of the Sudoku cell graphical object
+	 * @param s
+	 *            the Sudoku cell's string
+	 * @return the Sudoku cell image
+	 */
 	private BufferedImage createImage(Font font, FontRenderContext frc, int width, String s) {
 		int margin = 6;
 		double extra = (double) margin + margin;
@@ -277,6 +482,11 @@ public class SudokuCell {
 		return image;
 	}
 
+	/**
+	 * Concatenates the string of possible values.
+	 * 
+	 * @return the list of concatenated possible values.
+	 */
 	private List<String> concatenatePossibleValues() {
 		List<String> list = new ArrayList<String>();
 		StringBuilder builder = new StringBuilder();
@@ -299,5 +509,46 @@ public class SudokuCell {
 		}
 
 		return list;
+	}
+
+	/**
+	 * Creates an image of the Sudoku cell's hints. Empty cells can display
+	 * hints of remaining possible values.
+	 * 
+	 * @param list
+	 *            the string list of remaining possible values
+	 * @param imageWidth
+	 *            the width of the Sudoku cell image
+	 * @param imageHeight
+	 *            the height of the Sudoku cell image
+	 * @param stringHeight
+	 *            the height of the string
+	 * @return the sudoku cell image
+	 */
+	private BufferedImage createImage(List<String> list, double imageWidth, double imageHeight, double stringHeight) {
+
+		int margin = 6;
+		double extra = (double) margin + margin;
+		BufferedImage image = new BufferedImage((int) Math.round(imageWidth + extra),
+				(int) Math.round(imageHeight + extra), BufferedImage.TYPE_INT_RGB);
+		Graphics gg = image.getGraphics();
+		gg.setColor(Color.WHITE);
+		gg.fillRect(0, 0, image.getWidth(), image.getHeight());
+
+		if (isHintButtonPressed) {
+			gg.setColor(Color.WHITE);
+		} else {
+			gg.setColor(Color.LIGHT_GRAY);
+		}
+
+		int x = margin;
+		int y = margin / 2 + (int) Math.round(stringHeight);
+
+		for (Object s : list) {
+			gg.drawString((String) s, x, y);
+			y += (int) Math.round(stringHeight);
+		}
+		gg.dispose();
+		return image;
 	}
 }
