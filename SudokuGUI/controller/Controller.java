@@ -7,30 +7,29 @@ import java.util.Set;
 
 import javax.swing.SwingUtilities;
 
-import model.SudokuSolver;
-import model.SudokuData;
-import model.SudokuStack;
+import model.GuessLog;
+import model.PuzzlePosition;
+import model.PuzzleStack;
 import model.SudokuPuzzle;
 import view.SudokuCell;
 import view.SudokuFrame;
 
 /**
- * The Controller class responsible for changing the model to update the view
- * according to user actions.
+ * The Controller class responsible for changing the model to update the
+ * view according to user actions.
  * 
  * @author Tai
  *
  */
 public class Controller implements Runnable {
 
-	private static final boolean test = false;
+	private static final boolean isError = false;
 
-	private SudokuPuzzle sudokuPuzzle;
-	private SudokuFrame sudokuFrame;
-	private SudokuStack SudokuStack;
 	private int stackCount;
-
-	private Set<SudokuSolver> solveAttempts;
+	private PuzzleStack puzzleStack;
+	private Set<GuessLog> guessLog;
+	private SudokuFrame frame;
+	private SudokuPuzzle sudokuPuzzle;
 
 	/**
 	 * The Controller constructor.
@@ -40,118 +39,160 @@ public class Controller implements Runnable {
 	 * @param model
 	 *            the sudoku puzzle
 	 */
-	public Controller(SudokuFrame sudokuFrame, SudokuPuzzle sudokuPuzzle) {
-		this.sudokuFrame = sudokuFrame;
-		this.sudokuPuzzle = sudokuPuzzle;
-		this.SudokuStack = new SudokuStack();
-		this.solveAttempts = new HashSet<SudokuSolver>();
+	public Controller(SudokuFrame frame, SudokuPuzzle model) {
+		this.frame = frame;
+		this.sudokuPuzzle = model;
+		this.puzzleStack = new PuzzleStack();
+		this.guessLog = new HashSet<GuessLog>();
 	}
 
 	/**
-	 * The guessCellNumber method guesses a particular sudoku cell's number.
-	 * 
-	 * @param sudokuCell
-	 *            the sudoku cell
+	 * Runs the Sudoku puzzle solving method(s) until completion.
 	 */
-	private void guessCellNumber(SudokuCell sudokuCell) {
-		SudokuCell cellCopy = sudokuCell.copy();
-		SudokuData puzzleSearchCount = new SudokuData(cellCopy, sudokuPuzzle.getCells());
-		int number = puzzleSearchCount.getGuess();
-		puzzleSearchCount.addGuess(number);
-		SudokuStack.pushStack(puzzleSearchCount);
-		stackCount++;
-		if (test) {
-			System.out.println("stackCount: " + stackCount + ", attempt: " + number);
-			System.out.println(puzzleSearchCount);
-		}
-		SudokuSolver solveAttempt = new SudokuSolver(stackCount, number);
-		if (solveAttempts.contains(solveAttempt)) {
-			SudokuStack.popStack();
-			SudokuStack.popStack();
-			stackCount -= 2;
-			if (test) {
-				System.out.println("stackCount: " + stackCount + ", attempt: " + number);
-				System.out.println(puzzleSearchCount);
+	@Override
+	public void run() {
+		// long startTime = System.currentTimeMillis();
+
+		// stackCount = 0;
+		// singleCount = 0;
+		// guessCount = 0;
+
+		solveAllSingleValueCells();
+
+		while (sudokuPuzzle.isIncomplete()) {
+			SudokuCell sudokuCell = sudokuPuzzle.getSmallestPossibleValuesList();
+			if (sudokuCell != null) {
+				guessCellValue(sudokuCell);
+				guessAllSingleValueCells();
+			} else if (guessCellValueAgain()) {
+				guessAllSingleValueCells();
+			} else {
+				break;
 			}
-		} else {
-			solveAttempts.add(solveAttempt);
-			sudokuCell.setValue(number);
-			sudokuPuzzle.removePossibleValue(sudokuCell);
-			while (sudokuPuzzle.isInaccurate()) {
-				guessAgain();
-			}
-			repaintSudokuPanel();
 		}
+
+		// long elapsedTime = System.currentTimeMillis() - startTime;
+		// new SolutionDialog(frame, singleCount, guessCount, elapsedTime);
+
 	}
 
 	/**
-	 * The solveAllCellsWithOnePossibleValue method solves all cells with one
-	 * possible value only.
+	 * Runs the Sudoku puzzle solving method(s) until completion without
+	 * repainting the frame.
 	 */
-	private void solveAllCellsWithOnePossibleValue() {
-		Point cellCoordinates = sudokuPuzzle.getSinglePossibleNumberCells();
-		while (cellCoordinates != null) {
-			SudokuCell sudokuCell = sudokuPuzzle.getSudokuCell(cellCoordinates);
-			List<?> possibleValuesList = sudokuCell.getPossibleValues();
-			int value = (int) possibleValuesList.get(0);
+	public void runWithoutRepaint() {
+		// long startTime = System.currentTimeMillis();
+
+		// stackCount = 0;
+		// singleCount = 0;
+		// guessCount = 0;
+
+		solveAllSingleValueCells();
+
+		while (sudokuPuzzle.isIncomplete()) {
+			SudokuCell sudokuCell = sudokuPuzzle.getSmallestPossibleValuesList();
+			if (sudokuCell != null) {
+				guessCellValue(sudokuCell);
+				guessAllSingleValueCells();
+			} else if (guessCellValueAgain()) {
+				guessAllSingleValueCells();
+			} else {
+				break;
+			}
+		}
+
+		// long elapsedTime = System.currentTimeMillis() - startTime;
+		// new SolutionDialog(frame, singleCount, guessCount, elapsedTime);
+
+	}
+
+	/**
+	 * The solveAllSingleValueCells method solves all cells with one possible
+	 * value only.
+	 */
+	private void solveAllSingleValueCells() {
+		Point cellPosition = sudokuPuzzle.getSinglePossibleValue();
+		while (cellPosition != null) {
+			SudokuCell sudokuCell = sudokuPuzzle.getSudokuCell(cellPosition);
+			List<?> list = sudokuCell.getPossibleValues();
+			int value = (Integer) list.get(0);
 			sudokuCell.setValue(value);
 			sudokuPuzzle.removePossibleValue(sudokuCell);
 			sudokuCell.clearPossibleValues();
 			repaintSudokuPanel();
-			cellCoordinates = sudokuPuzzle.getSinglePossibleNumberCells();
+			cellPosition = sudokuPuzzle.getSinglePossibleValue();
 		}
 	}
 
 	/**
-	 * The guessAllCellsWithSingleValueOnly method guesses all cells with a
-	 * single value only, similar to the method above.
+	 * The guessCellValue method guesses a particular sudoku cell's number.
+	 * 
+	 * @param sudokuCell
+	 *            the sudoku cell
 	 */
-	private void guessAllCellsWithSingleValueOnly() {
-		Point cellCoordinates = sudokuPuzzle.getSinglePossibleNumberCells();
-		while (cellCoordinates != null) {
-			SudokuCell sudokuCell = sudokuPuzzle.getSudokuCell(cellCoordinates);
-			List<?> list = sudokuCell.getPossibleValues();
-			int value = (int) list.get(0);
+	private void guessCellValue(SudokuCell sudokuCell) {
+		SudokuCell copyCell = sudokuCell.copy();
+		PuzzlePosition puzzlePosition = new PuzzlePosition(copyCell, sudokuPuzzle.getCells());
+		int value = puzzlePosition.getGuess();
+		puzzlePosition.addGuess(value);
+		puzzleStack.pushStack(puzzlePosition);
+		stackCount++;
+		if (isError) {
+			System.out.println("stack: " + stackCount + ", guess: " + value);
+			System.out.println(puzzlePosition);
+		}
+		GuessLog guessLogEntry = new GuessLog(stackCount, value);
+		if (guessLog.contains(guessLogEntry)) {
+			puzzleStack.popStack();
+			puzzleStack.popStack();
+			stackCount -= 2;
+			if (isError) {
+				System.out.println("stack: " + stackCount + ", guess: " + value);
+				System.out.println(puzzlePosition);
+			}
+		} else {
+			guessLog.add(guessLogEntry);
 			sudokuCell.setValue(value);
 			sudokuPuzzle.removePossibleValue(sudokuCell);
+			while (sudokuPuzzle.isInaccurate()) {
+				guessCellValueAgain();
+			}
 			repaintSudokuPanel();
-			cellCoordinates = sudokuPuzzle.getSinglePossibleNumberCells();
 		}
 	}
 
 	/**
-	 * The guessAgain method performs the guess again if the puzzle search count
-	 * is greater than 0 and guess number is great than 0 and decrements the
-	 * stack count otherwise. If the puzzle search count is null, then it
-	 * returns false.
+	 * The guessCellValueAgain method performs the guess again if the puzzle
+	 * search count and guess number are greater than 0 and decrements the stack
+	 * count otherwise. If the puzzle search count is null, it returns false.
 	 * 
 	 * @return true or false
 	 */
-	private boolean guessAgain() {
-		SudokuData puzzleSearchCount = SudokuStack.peekStack();
-		if (puzzleSearchCount != null) {
-			sudokuPuzzle.setCells(puzzleSearchCount.getSudokuCellCoordinates());
-			int number = puzzleSearchCount.getGuess();
-			if (test) {
-				System.out.println("stackCount: " + stackCount + ", attempt: " + number);
-				System.out.println(puzzleSearchCount);
+	private boolean guessCellValueAgain() {
+		PuzzlePosition puzzlePosition = puzzleStack.peekStack();
+		if (puzzlePosition != null) {
+			sudokuPuzzle.setCells(puzzlePosition.getPosition());
+			int value = puzzlePosition.getGuess();
+			if (isError) {
+				System.out.println("stack: " + stackCount + ", guess: " + value);
+				System.out.println(puzzlePosition);
 			}
-			if (number > 0) {
-				SudokuStack.popStack();
-				puzzleSearchCount.addGuess(number);
-				SudokuCell sudokuCell = puzzleSearchCount.getSudokuCell();
+			if (value > 0) {
+				puzzleStack.popStack();
+				puzzlePosition.addGuess(value);
+				SudokuCell sudokuCell = puzzlePosition.getSudokuCell();
 				sudokuPuzzle.setCell(sudokuCell);
-				sudokuCell.setValue(number);
+				sudokuCell.setValue(value);
 				sudokuPuzzle.removePossibleValue(sudokuCell);
 				repaintSudokuPanel();
-				SudokuStack.pushStack(puzzleSearchCount);
+				puzzleStack.pushStack(puzzlePosition);
 				return true;
 			} else {
-				SudokuStack.popStack();
+				puzzleStack.popStack();
 				stackCount--;
-				if (test) {
-					System.out.println("stackCount: " + stackCount + ", attempt: " + number);
-					System.out.println(puzzleSearchCount);
+				if (isError) {
+					System.out.println("stackCount: " + stackCount + ", guess: " + value);
+					System.out.println(puzzlePosition);
 				}
 				return false;
 			}
@@ -161,23 +202,19 @@ public class Controller implements Runnable {
 	}
 
 	/**
-	 * Runs the methods above.
+	 * The guessAllSingleValueCells method guesses all cells with a single value
+	 * only.
 	 */
-	@Override
-	public void run() {
-		stackCount = 0;
-		solveAllCellsWithOnePossibleValue();
-
-		while (sudokuPuzzle.isIncomplete()) {
-			SudokuCell sudokuCell = sudokuPuzzle.getSudokuCellWithLeastNumbers();
-			if (sudokuCell != null) {
-				guessCellNumber(sudokuCell);
-				guessAllCellsWithSingleValueOnly();
-			} else if (guessAgain()) {
-				guessAllCellsWithSingleValueOnly();
-			} else {
-				break;
-			}
+	private void guessAllSingleValueCells() {
+		Point cellPosition = sudokuPuzzle.getSinglePossibleValue();
+		while (cellPosition != null) {
+			SudokuCell sudokuCell = sudokuPuzzle.getSudokuCell(cellPosition);
+			List<?> list = sudokuCell.getPossibleValues();
+			int value = (Integer) list.get(0);
+			sudokuCell.setValue(value);
+			sudokuPuzzle.removePossibleValue(sudokuCell);
+			repaintSudokuPanel();
+			cellPosition = sudokuPuzzle.getSinglePossibleValue();
 		}
 	}
 
@@ -187,7 +224,7 @@ public class Controller implements Runnable {
 	private void repaintSudokuPanel() {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				sudokuFrame.repaintSudokuPanel();
+				frame.repaintSudokuPanel();
 			}
 		});
 	}
