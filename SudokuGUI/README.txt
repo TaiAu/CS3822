@@ -1,6 +1,6 @@
 A Sudoku Solver Program - by Tai
 
-To run the Sudoku Solver Program, run the main method in the "Run.java" class.
+To run the Sudoku Solver Program, run the main method in the "Run.java" class in the controller package.
 
 To create a puzzle, a user may:
 
