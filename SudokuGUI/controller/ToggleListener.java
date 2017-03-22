@@ -15,18 +15,22 @@ public class ToggleListener implements ChangeListener {
 	private JToggleButton[] toggleButtons;
 
 	/**
-	 * The configureButtons method is responsible for adding listeners to the
-	 * buttons in the ButtonPanel class.
+	 * The setButtons method is responsible for adding listeners to the buttons
+	 * in the ButtonPanel class.
 	 * 
 	 * @param buttons
 	 */
-	public void configureButtons(JToggleButton... buttons) {
+	public void setToggleButtons(JToggleButton... buttons) {
 		toggleButtons = new JToggleButton[buttons.length];
 		for (int i = 0; i < buttons.length; i++) {
 			toggleButtons[i] = buttons[i];
 		}
 	}
 
+	/**
+	 * The stateChanged method sets the sudoku cell toggle button that has been
+	 * pressed to true and false otherwise.
+	 */
 	public void stateChanged(ChangeEvent event) {
 		JToggleButton toggleButton = (JToggleButton) event.getSource();
 		if (toggleButton.isSelected()) {
