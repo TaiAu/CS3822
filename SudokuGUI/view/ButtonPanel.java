@@ -1,26 +1,27 @@
 package view;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Random;
-import java.util.Scanner;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
+import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import controller.Controller;
+import controller.PrintListener;
 import controller.ToggleListener;
+import model.PuzzleArchiver;
+import model.PuzzleFactory;
 import model.SudokuPuzzle;
 
 /**
@@ -31,12 +32,12 @@ import model.SudokuPuzzle;
  */
 public class ButtonPanel {
 
-	protected static final Insets buttonInsets = new Insets(10, 10, 20, 10);
+	protected static final Insets buttonInsets = new Insets(1, 10, 2, 10);
 
 	private boolean isFirstPress;
 
 	private JToggleButton solvePuzzleButton;
-	
+
 	private JToggleButton hintButton;
 	private JToggleButton hideButton;
 
@@ -48,9 +49,12 @@ public class ButtonPanel {
 	private JToggleButton easyRandomPuzzleButton;
 	private JToggleButton mediumRandomPuzzleButton;
 	private JToggleButton hardRandomPuzzleButton;
+	private JToggleButton randomRandomPuzzleButton;
 
 	private JToggleButton savePuzzleButton;
 	private JToggleButton loadPuzzleButton;
+
+	private JButton printButton;
 
 	private JToggleButton lockGridButton;
 
@@ -59,6 +63,10 @@ public class ButtonPanel {
 	private SudokuFrame sudokuFrame;
 
 	private SudokuPuzzle sudokuPuzzle;
+
+	private PuzzleFactory puzzleFactory = new PuzzleFactory();
+
+	private PuzzleArchiver puzzleArchiver = new PuzzleArchiver();
 
 	/**
 	 * The ButtonPanel constructor.
@@ -76,7 +84,7 @@ public class ButtonPanel {
 	}
 
 	/**
-	 * Creates the buttons panel.
+	 * Creates the buttons panel, where all the buttons are contained.
 	 */
 	private void createPartControl() {
 		panel = new JPanel();
@@ -88,7 +96,9 @@ public class ButtonPanel {
 
 		// =======================================================================================================================
 
-		solvePuzzleButton = new JToggleButton("Solve Puzzle");
+		ImageIcon solveImage = new ImageIcon("src/skeletonkey.png");
+		solvePuzzleButton = new JToggleButton("Solve Puzzle", solveImage);
+		solvePuzzleButton.setHorizontalAlignment(SwingConstants.LEFT);
 		solvePuzzleButton.addChangeListener(tListener);
 		solvePuzzleButton.addChangeListener(new ChangeListener() {
 			@Override
@@ -105,7 +115,9 @@ public class ButtonPanel {
 
 		// =======================================================================================================================
 
-		clearGridButton = new JToggleButton("Clear Grid");
+		ImageIcon clearIcon = new ImageIcon("src/cleargrid.png");
+		clearGridButton = new JToggleButton("Clear Grid", clearIcon);
+		clearGridButton.setHorizontalAlignment(SwingConstants.LEFT);
 		clearGridButton.addChangeListener(tListener);
 		clearGridButton.addChangeListener(new ChangeListener() {
 			@Override
@@ -124,13 +136,13 @@ public class ButtonPanel {
 
 		// =======================================================================================================================
 
-		hintButton = new JToggleButton("Show Hints");
+		ImageIcon hintIcon = new ImageIcon("src/lightbulb.png");
+		hintButton = new JToggleButton("Show Hints", hintIcon);
+		hintButton.setHorizontalAlignment(SwingConstants.LEFT);
 		hintButton.addChangeListener(tListener);
 		hintButton.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent event) {
-				// sudokuPuzzle.setHintValues(lockGridButton.isSelected());
-
 				// for all sudoku cells
 				for (int i = 0; i < 9; i++) {
 					for (int j = 0; j < 9; j++) {
@@ -140,7 +152,6 @@ public class ButtonPanel {
 						sudokuFrame.repaintSudokuPanel();
 					}
 				}
-
 				hintButton.setSelected(false);
 				lockGridButton.setSelected(true);
 			}
@@ -148,13 +159,13 @@ public class ButtonPanel {
 		addComponent(panel, hintButton, 0, button++, 1, 1, buttonInsets, GridBagConstraints.LINE_START,
 				GridBagConstraints.HORIZONTAL);
 
-		hideButton = new JToggleButton("Hide Hints");
+		ImageIcon hideIcon = new ImageIcon("src/offlightbulb.png");
+		hideButton = new JToggleButton("Hide Hints", hideIcon);
+		hideButton.setHorizontalAlignment(SwingConstants.LEFT);
 		hideButton.addChangeListener(tListener);
 		hideButton.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent event) {
-				// sudokuPuzzle.setHintValues(lockGridButton.isSelected());
-
 				// for all sudoku cells
 				for (int i = 0; i < 9; i++) {
 					for (int j = 0; j < 9; j++) {
@@ -164,7 +175,6 @@ public class ButtonPanel {
 						sudokuFrame.repaintSudokuPanel();
 					}
 				}
-
 				hideButton.setSelected(false);
 				lockGridButton.setSelected(true);
 			}
@@ -174,89 +184,16 @@ public class ButtonPanel {
 
 		// =======================================================================================================================
 
-		easyRandomPuzzleButton = new JToggleButton("Easy Random Puzzle");
+		ImageIcon easyIcon = new ImageIcon("src/bronzestar.png");
+		easyRandomPuzzleButton = new JToggleButton("Easy New Puzzle", easyIcon);
+		easyRandomPuzzleButton.setHorizontalAlignment(SwingConstants.LEFT);
 		easyRandomPuzzleButton.addChangeListener(tListener);
 		easyRandomPuzzleButton.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent event) {
 				if (easyRandomPuzzleButton.isSelected()) {
 					isFirstPress = true;
-
-					sudokuPuzzle.initialiseSudokuGrid();
-
-					Controller runWithoutRepaint = new Controller(sudokuFrame, sudokuPuzzle);
-					runWithoutRepaint.runWithoutRepaint();
-
-					// 20 removals
-					for (int i = 0; i < 20; i++) {
-						Random generator = new Random();
-						int x = generator.nextInt(9);
-						int y = generator.nextInt(9);
-
-						// Get Cell and set max possible values
-						SudokuCell sudokuCell = sudokuPuzzle.getSudokuCell(new Point(x, y));
-						sudokuCell.initialise(9);
-
-						sudokuFrame.repaintSudokuPanel();
-					}
-
-					StringBuilder sb = new StringBuilder();
-
-					for (int i = 0; i < 9; i++) {
-						for (int j = 0; j < 9; j++) {
-							if (i == 0 && j == 0) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(76, 77) + " ");
-							} else if (i == 0 && j == 1 || i == 1 && j == 0) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(77, 78) + " ");
-							} else if (i == 0 && j < 9 || i == 1 && j == 1 || i >= 2 && j == 0) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(78, 79) + " ");
-							} else if (i == 1 && j < 9 || i >= 2 && j == 1) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(79, 80) + " ");
-							} else if (i >= 2 && j < 9 || i >= 2 && j == 1) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(80, 81) + " ");
-							}
-						}
-					}
-					System.out.println(sb);
-
-					try {
-						PrintWriter saver = new PrintWriter(new FileWriter("src/RandomPuzzles.txt"));
-						saver.print(sb);
-						saver.close();
-					} catch (IOException e) {
-						System.out.println("file not found!");
-					}
-
-					Scanner scanner = null;
-					try {
-						scanner = new Scanner(new File("src/randomPuzzles.txt"));
-					} catch (FileNotFoundException e) {
-						System.out.println("file not found!");
-					}
-
-					// for all sudoku cells
-					for (int i = 0; i < 9; i++) {
-						for (int j = 0; j < 9; j++) {
-							// scan for next int
-							int nextValue = scanner.nextInt();
-
-							if (nextValue != 0) {
-								// get next sudoku cell
-								SudokuCell sudokuCell = sudokuPuzzle.getSudokuCell(new Point(j, i));
-								// set values
-								sudokuCell.setValue(nextValue);
-								sudokuCell.setIsInitial(true);
-								sudokuPuzzle.removePossibleValue(sudokuCell);
-								sudokuCell.clearPossibleValues();
-								sudokuFrame.repaintSudokuPanel();
-							}
-						}
-					}
+					puzzleFactory.createEasyPuzzle(sudokuPuzzle, sudokuFrame);
 					easyRandomPuzzleButton.setSelected(false);
 					lockGridButton.setSelected(true);
 				}
@@ -266,90 +203,17 @@ public class ButtonPanel {
 				GridBagConstraints.HORIZONTAL);
 
 		// =======================================================================================================================
-
-		mediumRandomPuzzleButton = new JToggleButton("Medium Random Puzzle");
+		
+		ImageIcon mediumIcon = new ImageIcon("src/silverstar.png");
+		mediumRandomPuzzleButton = new JToggleButton("Medium New Puzzle", mediumIcon);
+		mediumRandomPuzzleButton.setHorizontalAlignment(SwingConstants.LEFT);
 		mediumRandomPuzzleButton.addChangeListener(tListener);
 		mediumRandomPuzzleButton.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent event) {
 				if (mediumRandomPuzzleButton.isSelected()) {
 					isFirstPress = true;
-
-					sudokuPuzzle.initialiseSudokuGrid();
-
-					Controller runWithoutRepaint = new Controller(sudokuFrame, sudokuPuzzle);
-					runWithoutRepaint.runWithoutRepaint();
-
-					// 40 removals
-					for (int i = 0; i < 40; i++) {
-						Random generator = new Random();
-						int x = generator.nextInt(9);
-						int y = generator.nextInt(9);
-
-						// Get Cell and set max possible values
-						SudokuCell sudokuCell = sudokuPuzzle.getSudokuCell(new Point(x, y));
-						sudokuCell.initialise(9);
-
-						sudokuFrame.repaintSudokuPanel();
-					}
-
-					StringBuilder sb = new StringBuilder();
-
-					for (int i = 0; i < 9; i++) {
-						for (int j = 0; j < 9; j++) {
-							if (i == 0 && j == 0) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(76, 77) + " ");
-							} else if (i == 0 && j == 1 || i == 1 && j == 0) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(77, 78) + " ");
-							} else if (i == 0 && j < 9 || i == 1 && j == 1 || i >= 2 && j == 0) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(78, 79) + " ");
-							} else if (i == 1 && j < 9 || i >= 2 && j == 1) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(79, 80) + " ");
-							} else if (i >= 2 && j < 9 || i >= 2 && j == 1) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(80, 81) + " ");
-							}
-						}
-					}
-					System.out.println(sb);
-
-					try {
-						PrintWriter saver = new PrintWriter(new FileWriter("src/RandomPuzzles.txt"));
-						saver.print(sb);
-						saver.close();
-					} catch (IOException e) {
-						System.out.println("file not found!");
-					}
-
-					Scanner scanner = null;
-					try {
-						scanner = new Scanner(new File("src/randomPuzzles.txt"));
-					} catch (FileNotFoundException e) {
-						System.out.println("file not found!");
-					}
-
-					// for all sudoku cells
-					for (int i = 0; i < 9; i++) {
-						for (int j = 0; j < 9; j++) {
-							// scan for next int
-							int nextValue = scanner.nextInt();
-
-							if (nextValue != 0) {
-								// get next sudoku cell
-								SudokuCell sudokuCell = sudokuPuzzle.getSudokuCell(new Point(j, i));
-								// set values
-								sudokuCell.setValue(nextValue);
-								sudokuCell.setIsInitial(true);
-								sudokuPuzzle.removePossibleValue(sudokuCell);
-								sudokuCell.clearPossibleValues();
-								sudokuFrame.repaintSudokuPanel();
-							}
-						}
-					}
+					puzzleFactory.createMediumPuzzle(sudokuPuzzle, sudokuFrame);
 					mediumRandomPuzzleButton.setSelected(false);
 					lockGridButton.setSelected(true);
 				}
@@ -360,89 +224,16 @@ public class ButtonPanel {
 
 		// =======================================================================================================================
 
-		hardRandomPuzzleButton = new JToggleButton("Hard Random Puzzle");
+		ImageIcon hardIcon = new ImageIcon("src/goldstar.png");
+		hardRandomPuzzleButton = new JToggleButton("Hard New Puzzle", hardIcon);
+		hardRandomPuzzleButton.setHorizontalAlignment(SwingConstants.LEFT);
 		hardRandomPuzzleButton.addChangeListener(tListener);
 		hardRandomPuzzleButton.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent event) {
 				if (hardRandomPuzzleButton.isSelected()) {
 					isFirstPress = true;
-
-					sudokuPuzzle.initialiseSudokuGrid();
-
-					Controller runWithoutRepaint = new Controller(sudokuFrame, sudokuPuzzle);
-					runWithoutRepaint.runWithoutRepaint();
-
-					// 60 removals
-					for (int i = 0; i < 60; i++) {
-						Random generator = new Random();
-						int x = generator.nextInt(9);
-						int y = generator.nextInt(9);
-
-						// Get Cell and set max possible values
-						SudokuCell sudokuCell = sudokuPuzzle.getSudokuCell(new Point(x, y));
-						sudokuCell.initialise(9);
-
-						sudokuFrame.repaintSudokuPanel();
-					}
-
-					StringBuilder sb = new StringBuilder();
-
-					for (int i = 0; i < 9; i++) {
-						for (int j = 0; j < 9; j++) {
-							if (i == 0 && j == 0) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(76, 77) + " ");
-							} else if (i == 0 && j == 1 || i == 1 && j == 0) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(77, 78) + " ");
-							} else if (i == 0 && j < 9 || i == 1 && j == 1 || i >= 2 && j == 0) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(78, 79) + " ");
-							} else if (i == 1 && j < 9 || i >= 2 && j == 1) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(79, 80) + " ");
-							} else if (i >= 2 && j < 9 || i >= 2 && j == 1) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(80, 81) + " ");
-							}
-						}
-					}
-					System.out.println(sb);
-
-					try {
-						PrintWriter saver = new PrintWriter(new FileWriter("src/RandomPuzzles.txt"));
-						saver.print(sb);
-						saver.close();
-					} catch (IOException e) {
-						System.out.println("file not found!");
-					}
-
-					Scanner scanner = null;
-					try {
-						scanner = new Scanner(new File("src/randomPuzzles.txt"));
-					} catch (FileNotFoundException e) {
-						System.out.println("file not found!");
-					}
-
-					// for all sudoku cells
-					for (int i = 0; i < 9; i++) {
-						for (int j = 0; j < 9; j++) {
-							// scan for next int
-							int nextValue = scanner.nextInt();
-
-							if (nextValue != 0) {
-								// get next sudoku cell
-								SudokuCell sudokuCell = sudokuPuzzle.getSudokuCell(new Point(j, i));
-								// set values
-								sudokuCell.setValue(nextValue);
-								sudokuCell.setIsInitial(true);
-								sudokuPuzzle.removePossibleValue(sudokuCell);
-								sudokuCell.clearPossibleValues();
-								sudokuFrame.repaintSudokuPanel();
-							}
-						}
-					}
+					puzzleFactory.createHardPuzzle(sudokuPuzzle, sudokuFrame);
 					hardRandomPuzzleButton.setSelected(false);
 					lockGridButton.setSelected(true);
 				}
@@ -453,44 +244,36 @@ public class ButtonPanel {
 
 		// =======================================================================================================================
 
-		fiendishPuzzleButton = new JToggleButton("Fiendish Puzzle");
+		ImageIcon randomIcon = new ImageIcon("src/random.png");
+		randomRandomPuzzleButton = new JToggleButton("Random Puzzle", randomIcon);
+		randomRandomPuzzleButton.setHorizontalAlignment(SwingConstants.LEFT);
+		randomRandomPuzzleButton.addChangeListener(tListener);
+		randomRandomPuzzleButton.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent event) {
+				if (randomRandomPuzzleButton.isSelected()) {
+					isFirstPress = true;
+					puzzleFactory.createRandomPuzzle(sudokuPuzzle, sudokuFrame);
+					randomRandomPuzzleButton.setSelected(false);
+					lockGridButton.setSelected(true);
+				}
+			}
+		});
+		addComponent(panel, randomRandomPuzzleButton, 0, button++, 1, 1, buttonInsets, GridBagConstraints.LINE_START,
+				GridBagConstraints.HORIZONTAL);
+
+		// =======================================================================================================================
+
+		ImageIcon fiendishIcon = new ImageIcon("src/devil.png");
+		fiendishPuzzleButton = new JToggleButton(" Fiendish Puzzle", fiendishIcon);
+		fiendishPuzzleButton.setHorizontalAlignment(SwingConstants.LEFT);
 		fiendishPuzzleButton.addChangeListener(tListener);
 		fiendishPuzzleButton.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent event) {
 				if (fiendishPuzzleButton.isSelected()) {
 					isFirstPress = true;
-
-					sudokuPuzzle.initialiseSudokuGrid();
-					sudokuFrame.repaintSudokuPanel();
-
-					System.out.println("loading...");
-
-					Scanner scanner = null;
-					try {
-						scanner = new Scanner(new File("src/hardPuzzles.txt"));
-					} catch (FileNotFoundException e) {
-						System.out.println("file not found!");
-					}
-
-					// for all sudoku cells
-					for (int i = 0; i < 9; i++) {
-						for (int j = 0; j < 9; j++) {
-							// scan for next int
-							int nextValue = scanner.nextInt();
-
-							if (nextValue != 0) {
-								// get next sudoku cell
-								SudokuCell sudokuCell = sudokuPuzzle.getSudokuCell(new Point(j, i));
-								// set values
-								sudokuCell.setValue(nextValue);
-								sudokuCell.setIsInitial(true);
-								sudokuPuzzle.removePossibleValue(sudokuCell);
-								sudokuCell.clearPossibleValues();
-								sudokuFrame.repaintSudokuPanel();
-							}
-						}
-					}
+					puzzleFactory.loadFiendishPuzzle(sudokuPuzzle, sudokuFrame);
 					fiendishPuzzleButton.setSelected(false);
 					lockGridButton.setSelected(true);
 				}
@@ -501,44 +284,16 @@ public class ButtonPanel {
 
 		// =======================================================================================================================
 
-		symmetricalPuzzleButton = new JToggleButton("Symmetrical Puzzle");
+		ImageIcon symmetryIcon = new ImageIcon("src/yinyang.png");
+		symmetricalPuzzleButton = new JToggleButton("Symmetrical Puzzle", symmetryIcon);
+		symmetricalPuzzleButton.setHorizontalAlignment(SwingConstants.LEFT);
 		symmetricalPuzzleButton.addChangeListener(tListener);
 		symmetricalPuzzleButton.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent event) {
 				if (symmetricalPuzzleButton.isSelected()) {
 					isFirstPress = true;
-
-					sudokuPuzzle.initialiseSudokuGrid();
-					sudokuFrame.repaintSudokuPanel();
-
-					System.out.println("loading...");
-
-					Scanner scanner = null;
-					try {
-						scanner = new Scanner(new File("src/mediumPuzzles.txt"));
-					} catch (FileNotFoundException e) {
-						System.out.println("file not found!");
-					}
-
-					// for all sudoku cells
-					for (int i = 0; i < 9; i++) {
-						for (int j = 0; j < 9; j++) {
-							// scan for next int
-							int nextValue = scanner.nextInt();
-
-							if (nextValue != 0) {
-								// get next sudoku cell
-								SudokuCell sudokuCell = sudokuPuzzle.getSudokuCell(new Point(j, i));
-								// set values
-								sudokuCell.setValue(nextValue);
-								sudokuCell.setIsInitial(true);
-								sudokuPuzzle.removePossibleValue(sudokuCell);
-								sudokuCell.clearPossibleValues();
-								sudokuFrame.repaintSudokuPanel();
-							}
-						}
-					}
+					puzzleFactory.loadSymmetricalPuzzle(sudokuPuzzle, sudokuFrame);
 					symmetricalPuzzleButton.setSelected(false);
 					lockGridButton.setSelected(true);
 				}
@@ -549,64 +304,16 @@ public class ButtonPanel {
 
 		// =======================================================================================================================
 
-		savePuzzleButton = new JToggleButton("Save Puzzle");
+		ImageIcon saveIcon = new ImageIcon("src/floppydisk.png");
+		savePuzzleButton = new JToggleButton(" Save Puzzle", saveIcon);
+		savePuzzleButton.setHorizontalAlignment(SwingConstants.LEFT);
 		savePuzzleButton.addChangeListener(tListener);
 		savePuzzleButton.addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent event) {
 				if (savePuzzleButton.isSelected()) {
-					System.out.println("saving...");
-
-					StringBuilder sb = new StringBuilder();
-
-					// print to console and save columns left to right
-					for (int i = 0; i < 9; i++) {
-						for (int j = 0; j < 9; j++) {
-
-							if (i == 0 && j == 0) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(76, 77) + " ");
-								System.out.print(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(76, 77));
-							} else if (i == 0 && j == 1 || i == 1 && j == 0) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(77, 78) + " ");
-								System.out.print(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(77, 78));
-							} else if (i == 0 && j < 9 || i == 1 && j == 1 || i >= 2 && j == 0) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(78, 79) + " ");
-								System.out.print(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(78, 79));
-							} else if (i == 1 && j < 9 || i >= 2 && j == 1) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(79, 80) + " ");
-								System.out.print(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(79, 80));
-							} else if (i == 8 && j == 8) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(80, 81) + " ");
-								System.out
-										.print(sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(80, 81)
-												+ "\n");
-							} else if (i >= 2 && j < 9 || i >= 2 && j == 1) {
-								sb.append(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(80, 81) + " ");
-								System.out.print(
-										sudokuPuzzle.getSudokuCell(new Point(j, i)).toString().substring(80, 81));
-							}
-						}
-					}
-
-					try {
-						PrintWriter saver = new PrintWriter(new FileWriter("src/savedPuzzle.txt"));
-						saver.print(sb);
-						saver.close();
-					} catch (IOException e) {
-						System.out.println("file not found!");
-					}
-
+					puzzleArchiver.savePuzzle(sudokuPuzzle);
 					savePuzzleButton.setSelected(false);
 					lockGridButton.setSelected(true);
 				}
@@ -617,43 +324,16 @@ public class ButtonPanel {
 
 		// =======================================================================================================================
 
-		loadPuzzleButton = new JToggleButton("Load Puzzle");
+		ImageIcon loadIcon = new ImageIcon("src/openfolder.png");
+		loadPuzzleButton = new JToggleButton("Load Puzzle", loadIcon);
+		loadPuzzleButton.setHorizontalAlignment(SwingConstants.LEFT);
 		loadPuzzleButton.addChangeListener(tListener);
 		loadPuzzleButton.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent event) {
 				if (loadPuzzleButton.isSelected()) {
 					isFirstPress = true;
-
-					sudokuPuzzle.initialiseSudokuGrid();
-
-					System.out.println("loading...");
-
-					Scanner scanner = null;
-					try {
-						scanner = new Scanner(new File("src/savedPuzzle.txt"));
-					} catch (FileNotFoundException e) {
-						System.out.println("file not found!");
-					}
-
-					// for all sudoku cells
-					for (int i = 0; i < 9; i++) {
-						for (int j = 0; j < 9; j++) {
-							// scan for next int
-							int nextValue = scanner.nextInt();
-
-							if (nextValue != 0) {
-								// get next sudoku cell
-								SudokuCell sudokuCell = sudokuPuzzle.getSudokuCell(new Point(j, i));
-								// set values
-								sudokuCell.setValue(nextValue);
-								sudokuCell.setIsInitial(true);
-								sudokuPuzzle.removePossibleValue(sudokuCell);
-								sudokuCell.clearPossibleValues();
-								sudokuFrame.repaintSudokuPanel();
-							}
-						}
-					}
+					puzzleArchiver.loadPuzzle(sudokuPuzzle, sudokuFrame);
 					loadPuzzleButton.setSelected(false);
 					lockGridButton.setSelected(true);
 				}
@@ -662,9 +342,25 @@ public class ButtonPanel {
 		addComponent(panel, loadPuzzleButton, 0, button++, 1, 1, buttonInsets, GridBagConstraints.LINE_START,
 				GridBagConstraints.HORIZONTAL);
 
+		// ================================================================================
+
+		ImageIcon printIcon = new ImageIcon("src/printer.png");
+		printButton = new JButton("Print Puzzle", printIcon);
+		printButton.setHorizontalAlignment(SwingConstants.LEFT);
+		printButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				new Thread(new PrintListener(sudokuFrame)).start();
+			}
+		});
+		addComponent(panel, printButton, 0, button++, 1, 1, buttonInsets, GridBagConstraints.LINE_START,
+				GridBagConstraints.HORIZONTAL);
+
 		// =======================================================================================================================
 
-		lockGridButton = new JToggleButton("Lock Grid");
+		ImageIcon lockIcon = new ImageIcon("src/lock.png");
+		lockGridButton = new JToggleButton("Lock Grid", lockIcon);
+		lockGridButton.setHorizontalAlignment(SwingConstants.LEFT);
 		lockGridButton.addChangeListener(tListener);
 		lockGridButton.addChangeListener(new ChangeListener() {
 			@Override
@@ -679,7 +375,7 @@ public class ButtonPanel {
 
 		tListener.setToggleButtons(solvePuzzleButton, hintButton, hideButton, clearGridButton, symmetricalPuzzleButton,
 				fiendishPuzzleButton, easyRandomPuzzleButton, mediumRandomPuzzleButton, hardRandomPuzzleButton,
-				savePuzzleButton, loadPuzzleButton, lockGridButton);
+				randomRandomPuzzleButton, savePuzzleButton, loadPuzzleButton, lockGridButton);
 
 		lockGridButton.setSelected(true);
 	}
